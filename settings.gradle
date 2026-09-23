@@ -1,0 +1,2 @@
+rootProject.name = 'feature-flag'
+include 'flag-server', 'flag-sdk'
