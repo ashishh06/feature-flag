@@ -1,0 +1,15 @@
+plugins {
+    id 'application'
+}
+
+application {
+    mainClass = 'com.featureflag.testclient.TestClientApp'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation project(':flag-sdk')
+}
