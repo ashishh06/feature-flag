@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -18,27 +20,33 @@ public class Flag {
 
     private String name;
 
+    private String description;
+
     private boolean enabled;
 
-    // JPA requires a no-args constructor
-//    public Flag() {}
-//
+    private boolean archived;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = Instant.now();
+        updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
+    }
+
     public Flag(String key, String name, boolean enabled) {
         this.key = key;
         this.name = name;
         this.enabled = enabled;
+        this.archived = false;
     }
-
-    // getters and setters — JPA needs these to read/write fields
-//    public Long getId() { return id; }
-//    public void setId(Long id) { this.id = id; }
-//
-//    public String getKey() { return key; }
-//    public void setKey(String key) { this.key = key; }
-//
-//    public String getName() { return name; }
-//    public void setName(String name) { this.name = name; }
-//
-//    public boolean isEnabled() { return enabled; }
-//    public void setEnabled(boolean enabled) { this.enabled = enabled; }
 }

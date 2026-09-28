@@ -20,7 +20,7 @@ public class SdkFlagController {
 
     @GetMapping
     public List<SdkFlagResponse> getFlagsForSdk() {
-        return flagRepository.findAll()
+        return flagRepository.findByArchivedFalse()
                 .stream()
                 .map(flag -> new SdkFlagResponse(flag.getKey(), flag.isEnabled()))
                 .toList();
