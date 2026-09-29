@@ -26,10 +26,13 @@ public class FlagPoller {
         this.httpClient = HttpClient.newHttpClient();
         this.objectMapper = new ObjectMapper();
         this.flagCache = flagCache;
-        this.scheduler = Executors.newSingleThreadScheduledExecutor();
+        this.scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "flag-poller");
+            t.setDaemon(true);
+            return t;
+        });
     }
 
-    // refresh once immediately, then every 30s after that
     public void start() {
         refresh();
         scheduler.scheduleAtFixedRate(this::refresh, 30, 30, TimeUnit.SECONDS);
@@ -59,7 +62,6 @@ public class FlagPoller {
 
             System.out.println("[flag-sdk] refreshed " + flags.size() + " flags");
         } catch (IOException | InterruptedException e) {
-            // a failed refresh should never crash the client app — just keep serving the last known values
             System.out.println("[flag-sdk] refresh failed, using last known flags: " + e.getMessage());
         }
     }

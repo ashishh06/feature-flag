@@ -8,9 +8,11 @@ public class TestClientApp {
         FeatureFlagClient client = new FeatureFlagClient("http://localhost:8080");
         client.start();
 
-        String flagKey = "dark-mode"; // use whichever key you already created via the admin API
+        // Register shutdown hook for graceful cleanup
+        Runtime.getRuntime().addShutdownHook(new Thread(client::close));
 
-        // loop forever, checking the flag every 5 seconds
+        String flagKey = "dark-mode";
+
         while (true) {
             boolean enabled = client.isEnabled(flagKey);
             System.out.println("[test-client] '" + flagKey + "' is " + (enabled ? "ON" : "OFF"));

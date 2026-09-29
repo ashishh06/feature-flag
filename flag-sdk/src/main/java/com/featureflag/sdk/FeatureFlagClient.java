@@ -3,7 +3,7 @@ package com.featureflag.sdk;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class FeatureFlagClient {
+public class FeatureFlagClient implements AutoCloseable {
 
     private final Map<String, Boolean> flagCache = new ConcurrentHashMap<>();
     private final FlagPoller poller;
@@ -16,7 +16,8 @@ public class FeatureFlagClient {
         poller.start();
     }
 
-    public void stop() {
+    @Override
+    public void close() {
         poller.stop();
     }
 
