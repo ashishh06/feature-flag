@@ -1,0 +1,10 @@
+CREATE TABLE flags (
+    id BIGSERIAL PRIMARY KEY,
+    flag_key VARCHAR(100) NOT NULL UNIQUE,
+    name VARCHAR(200) NOT NULL,
+    description VARCHAR(2000),
+    enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL
+);

@@ -28,12 +28,10 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/sdk/**").permitAll()
-                        .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/api/admin/**").authenticated()
                         .anyRequest().authenticated()
                 )
-                .httpBasic(basic -> {})
-                .headers(headers -> headers.frameOptions(frame -> frame.disable()));
+                .httpBasic(basic -> {});
 
         return http.build();
     }
