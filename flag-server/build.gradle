@@ -36,6 +36,10 @@ dependencies {
 	runtimeOnly 'org.postgresql:postgresql'
 }
 
+tasks.named('bootRun') {
+	jvmArgs '-Duser.timezone=UTC'
+}
+
 tasks.named('test') {
 	useJUnitPlatform()
 }
