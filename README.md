@@ -55,6 +55,7 @@ A feature flag is like a light switch for your software. You can turn features o
 | **Validation** | Input validation with clear error messages |
 | **Error Handling** | Structured error responses (400/404/409/500) |
 | **PostgreSQL** | Production-ready database with Flyway migrations |
+| **JWT Authentication** | Secure token-based auth for admin endpoints |
 | **SDK** | Java SDK for easy integration into your apps |
 | **Polling** | SDK polls server for flag updates (30s interval) |
 | **Fallback** | SDK keeps last known values if server is down |
@@ -63,12 +64,13 @@ A feature flag is like a light switch for your software. You can turn features o
 
 | Method | Endpoint | Auth | Purpose |
 |---|---|---|---|
+| POST | `/api/auth/login` | None | Get JWT token |
 | GET | `/api/sdk/flags` | None | Get all flags (SDK) |
-| GET | `/api/admin/flags` | Basic | Get all flags (admin) |
-| POST | `/api/admin/flags` | Basic | Create a flag |
-| PUT | `/api/admin/flags/{id}/toggle` | Basic | Toggle a flag |
-| PATCH | `/api/admin/flags/{id}` | Basic | Update a flag |
-| DELETE | `/api/admin/flags/{id}` | Basic | Delete a flag (soft-delete) |
+| GET | `/api/admin/flags` | JWT | Get all flags (admin) |
+| POST | `/api/admin/flags` | JWT | Create a flag |
+| PUT | `/api/admin/flags/{id}/toggle` | JWT | Toggle a flag |
+| PATCH | `/api/admin/flags/{id}` | JWT | Update a flag |
+| DELETE | `/api/admin/flags/{id}` | JWT | Delete a flag (soft-delete) |
 
 ---
 
@@ -79,9 +81,9 @@ A feature flag is like a light switch for your software. You can turn features o
 | Backend | Spring Boot 4.1.1 (Java 21) |
 | Database | PostgreSQL 16 |
 | Migrations | Flyway |
+| Auth | JWT (JSON Web Tokens) |
 | SDK | Java 21 |
 | Build Tool | Gradle |
-| Auth | HTTP Basic (JWT coming soon) |
 
 ---
 
@@ -95,6 +97,7 @@ feature-flag/
 │   │       ├── controller/    # REST endpoints
 │   │       ├── dto/           # Request/response objects
 │   │       ├── exception/     # Error handling
+│   │       ├── security/      # JWT utilities
 │   │       └── config/        # Security config
 │   └── src/main/resources/
 │       ├── application.properties
@@ -129,15 +132,22 @@ feature-flag/
    ./gradlew :flag-server:bootRun
    ```
 
-3. **Create a flag:**
+3. **Get a JWT token:**
+   ```bash
+   curl -X POST http://localhost:8080/api/auth/login \
+     -H "Content-Type: application/json" \
+     -d '{"username": "admin", "password": "changeme"}'
+   ```
+
+4. **Create a flag:**
    ```bash
    curl -X POST http://localhost:8080/api/admin/flags \
      -H "Content-Type: application/json" \
-     -H "Authorization: Basic admin:changeme" \
+     -H "Authorization: Bearer YOUR_JWT_TOKEN" \
      -d '{"key": "dark-mode", "name": "Dark Mode", "enabled": true}'
    ```
 
-4. **Check flags:**
+5. **Check flags:**
    ```bash
    curl http://localhost:8080/api/sdk/flags
    ```
@@ -146,33 +156,14 @@ feature-flag/
 
 ## Future Roadmap
 
-### Phase 2B (In Progress) — Database & Auth
-- [x] PostgreSQL integration
-- [x] Flyway migrations
-- [ ] JWT authentication (replacing HTTP Basic)
-- [ ] Refresh tokens
-
-### Phase 2C — Core Feature-Flag Features
-- [ ] Percentage rollout (e.g., 10% of users)
-- [ ] User targeting (e.g., only user123)
-- [ ] Server-side evaluation endpoint
-- [ ] Rule priority and ordering
-- [ ] Audit log for flag changes
-
-### Phase 2D — Production Readiness
-- [ ] Docker support for the server
-- [ ] CI/CD pipeline (GitHub Actions)
-- [ ] API documentation (Swagger/OpenAPI)
-- [ ] Health checks and metrics
-- [ ] Structured logging
-
-### Phase 2E — Advanced Features
-- [ ] Real-time updates (SSE/WebSocket)
-- [ ] Multi-tenancy
-- [ ] Flag groups/namespaces
-- [ ] A/B testing framework
-- [ ] Webhook notifications
-- [ ] Analytics dashboard
+- **Percentage rollout** — Roll out features to a percentage of users (e.g., 10% of traffic)
+- **User targeting** — Target specific users or groups with flags
+- **Server-side evaluation** — Evaluate flags on the server with user context
+- **Audit logging** — Track who changed what and when
+- **Real-time updates** — Push flag changes instantly via SSE/WebSocket
+- **Multi-tenancy** — Support multiple organizations with isolated flags
+- **A/B testing** — Built-in A/B testing with metrics
+- **Analytics dashboard** — Visualize flag usage and rollout metrics
 
 ---
 
