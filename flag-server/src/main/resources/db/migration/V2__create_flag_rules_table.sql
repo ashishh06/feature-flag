@@ -1,0 +1,8 @@
+CREATE TABLE flag_rules (
+    id BIGSERIAL PRIMARY KEY,
+    flag_id BIGINT NOT NULL,
+    type VARCHAR(20) NOT NULL,
+    value VARCHAR(500) NOT NULL,
+    priority INTEGER NOT NULL,
+    FOREIGN KEY (flag_id) REFERENCES flags(id) ON DELETE CASCADE
+);

@@ -21,6 +21,13 @@ public class GlobalExceptionHandler {
                 .body(ApiError.of(404, ex.getMessage(), request.getRequestURI()));
     }
 
+    @ExceptionHandler(FlagKeyNotFoundException.class)
+    public ResponseEntity<ApiError> handleFlagKeyNotFound(FlagKeyNotFoundException ex, HttpServletRequest request) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiError.of(404, ex.getMessage(), request.getRequestURI()));
+    }
+
     @ExceptionHandler(DuplicateFlagKeyException.class)
     public ResponseEntity<ApiError> handleDuplicateKey(DuplicateFlagKeyException ex, HttpServletRequest request) {
         return ResponseEntity
