@@ -2,75 +2,34 @@
 
 ## What Is This?
 
-Imagine you're running a website and you want to show a new feature to only some users — maybe 10% of visitors, or just your internal team. You don't want to redeploy your entire app every time you want to turn something on or off. That's what a **feature flag** does.
+A feature flag management system that lets you turn features on or off without redeploying your application.
 
-A feature flag is like a light switch for your software. You can turn features on or off instantly, without touching any code. This project is a **feature flag management system** — it lets you create, manage, and distribute these switches to your applications.
+Imagine you're running a website and you want to show a new feature to only some users — maybe 10% of visitors, or just your internal team. You don't want to redeploy your entire app every time you want to turn something on or off. That's what a feature flag does.
 
----
-
-## Why Would You Use This?
-
-- **Safe releases** — Turn features on for a small group first, then roll out to everyone
-- **Instant rollback** — If something breaks, flip the switch off immediately
-- **A/B testing** — Show different versions to different users and see which works better
-- **No redeploys** — Change behavior without pushing new code
+A feature flag is like a light switch for your software. You can turn features on or off instantly, without touching any code.
 
 ---
 
-## How It Works (Simple)
-
-1. **Admin** creates a flag (e.g., "dark-mode") using the admin API
-2. **Your app** asks the flag server: "Is dark-mode enabled?"
-3. **Your app** shows or hides the feature based on the answer
-
----
-
-## How It Works (Technical)
+## How It Works
 
 ```
-┌─────────────┐      ┌─────────────┐      ┌─────────────┐
-│   Admin     │─────►│  Flag Server │─────►│  PostgreSQL │
-│   API       │      │  (Spring Boot)│      │  Database   │
-└─────────────┘      └──────┬──────┘      └─────────────┘
-                            │
-                            │ REST API
-                            ▼
-                      ┌─────────────┐
-                      │   Your App  │
-                      │   (SDK)     │
-                      └─────────────┘
+┌─────────────────────────────────────────────────────────┐
+│  1. You create a flag via API                           │
+│     POST /api/admin/flags { "key": "dark-mode" }         │
+│  ↓                                                       │
+│  2. Flag server stores it in PostgreSQL                 │
+│  ↓                                                       │
+│  3. Your app uses SDK to check flag status               │
+│     if (sdk.isEnabled("dark-mode")) { show dark mode }   │
+│  ↓                                                       │
+│  4. SDK polls server every 30s for updates               │
+│  ↓                                                       │
+│  5. You toggle flag ON/OFF via API                       │
+│     PUT /api/admin/flags/1/toggle                        │
+│  ↓                                                       │
+│  6. Your app sees the change within 30s                  │
+└─────────────────────────────────────────────────────────┘
 ```
-
----
-
-## Features
-
-### Current
-
-| Feature | Description |
-|---|---|
-| **Flag Management** | Create, read, update, delete (soft-delete) feature flags |
-| **Toggle Switches** | Instantly enable/disable flags via API |
-| **Metadata** | Track description, creation date, last modified date |
-| **Validation** | Input validation with clear error messages |
-| **Error Handling** | Structured error responses (400/404/409/500) |
-| **PostgreSQL** | Production-ready database with Flyway migrations |
-| **JWT Authentication** | Secure token-based auth for admin endpoints |
-| **SDK** | Java SDK for easy integration into your apps |
-| **Polling** | SDK polls server for flag updates (30s interval) |
-| **Fallback** | SDK keeps last known values if server is down |
-
-### API Endpoints
-
-| Method | Endpoint | Auth | Purpose |
-|---|---|---|---|
-| POST | `/api/auth/login` | None | Get JWT token |
-| GET | `/api/sdk/flags` | None | Get all flags (SDK) |
-| GET | `/api/admin/flags` | JWT | Get all flags (admin) |
-| POST | `/api/admin/flags` | JWT | Create a flag |
-| PUT | `/api/admin/flags/{id}/toggle` | JWT | Toggle a flag |
-| PATCH | `/api/admin/flags/{id}` | JWT | Update a flag |
-| DELETE | `/api/admin/flags/{id}` | JWT | Delete a flag (soft-delete) |
 
 ---
 
@@ -98,6 +57,7 @@ feature-flag/
 │   │       ├── dto/           # Request/response objects
 │   │       ├── exception/     # Error handling
 │   │       ├── security/      # JWT utilities
+│   │       ├── service/       # Business logic
 │   │       └── config/        # Security config
 │   └── src/main/resources/
 │       ├── application.properties
@@ -109,6 +69,103 @@ feature-flag/
 │           └── FlagPoller.java
 └── test-client/          # Demo app showing SDK usage
 ```
+
+---
+
+## API Endpoints
+
+### Authentication
+
+| Method | Endpoint | Auth | Purpose |
+|---|---|---|---|
+| POST | `/api/auth/login` | None | Get JWT token |
+
+**Request:**
+```json
+{
+  "username": "admin",
+  "password": "changeme"
+}
+```
+
+**Response:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiJ9..."
+}
+```
+
+---
+
+### SDK Endpoints (No Auth Required)
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/api/sdk/flags` | Get all flags |
+| POST | `/api/sdk/evaluate` | Evaluate flag for user |
+
+**Evaluate Request:**
+```json
+{
+  "flagKey": "dark-mode",
+  "userId": "user123",
+  "group": "beta-testers"
+}
+```
+
+**Evaluate Response:**
+```json
+{
+  "flagKey": "dark-mode",
+  "enabled": true,
+  "reason": "Percentage rollout: 50%"
+}
+```
+
+---
+
+### Admin Endpoints (JWT Required)
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/api/admin/flags` | Get all flags |
+| POST | `/api/admin/flags` | Create a flag |
+| GET | `/api/admin/flags/{id}` | Get flag by ID |
+| PUT | `/api/admin/flags/{id}/toggle` | Toggle flag |
+| PATCH | `/api/admin/flags/{id}` | Update flag |
+| DELETE | `/api/admin/flags/{id}` | Delete flag (soft-delete) |
+| GET | `/api/admin/audit` | Get all audit history |
+| GET | `/api/admin/audit/{flagId}` | Get audit history for flag |
+
+**Create Flag Request:**
+```json
+{
+  "key": "dark-mode",
+  "name": "Dark Mode",
+  "enabled": true
+}
+```
+
+---
+
+## Features
+
+| Feature | Description |
+|---|---|
+| **Flag Management** | Create, read, update, delete (soft-delete) feature flags |
+| **Toggle Switches** | Instantly enable/disable flags via API |
+| **Metadata** | Track description, creation date, last modified date |
+| **Validation** | Input validation with clear error messages |
+| **Error Handling** | Structured error responses (400/404/409/500) |
+| **Percentage Rollout** | Show feature to a percentage of users |
+| **User Targeting** | Target specific users or groups with flags |
+| **Server-side Evaluation** | Evaluate flags on the server with user context |
+| **Audit Logging** | Track who changed what and when |
+| **PostgreSQL** | Database with Flyway migrations |
+| **JWT Authentication** | Token-based auth for admin endpoints |
+| **SDK** | Java SDK for easy integration into your apps |
+| **Polling** | SDK polls server for flag updates (30s interval) |
+| **Fallback** | SDK keeps last known values if server is down |
 
 ---
 
@@ -154,6 +211,12 @@ feature-flag/
 
 ---
 
+## Deployment
+
+See deployment instructions below.
+
+---
+
 ## Future Roadmap
 
 - **Percentage rollout** — Roll out features to a percentage of users (e.g., 10% of traffic)
@@ -164,12 +227,6 @@ feature-flag/
 - **Multi-tenancy** — Support multiple organizations with isolated flags
 - **A/B testing** — Built-in A/B testing with metrics
 - **Analytics dashboard** — Visualize flag usage and rollout metrics
-
----
-
-## Contributing
-
-This is a personal project for learning and portfolio purposes. Feel free to fork and experiment!
 
 ---
 
