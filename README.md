@@ -213,7 +213,54 @@ feature-flag/
 
 ## Deployment
 
-See deployment instructions below.
+### Using Neon (PostgreSQL) + Render (App)
+
+#### Step 1: Set Up Neon
+
+1. Go to [neon.tech](https://neon.tech)
+2. Sign up with GitHub (no credit card required)
+3. Create a new project
+4. Get connection details (host, database, username, password)
+
+#### Step 2: Configure Environment Variables
+
+In Render, set these environment variables:
+
+```
+DB_HOST=your-neon-host
+DB_PORT=5432
+DB_NAME=your-neon-database
+DB_USER=your-neon-username
+DB_PASSWORD=your-neon-password
+DB_SSLMODE=require
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=your-secure-password
+```
+
+#### Step 3: Deploy to Render
+
+1. Push your code to GitHub
+2. Sign up at [render.com](https://render.com)
+3. Create a new Web Service
+4. Connect your GitHub repo
+5. Set Runtime to Docker
+6. Add environment variables
+7. Deploy
+
+---
+
+## Environment Variables
+
+| Variable | Description | Default |
+|---|---|---|
+| `DB_HOST` | PostgreSQL host | `localhost` |
+| `DB_PORT` | PostgreSQL port | `5432` |
+| `DB_NAME` | Database name | `featureflag` |
+| `DB_USER` | Database username | `postgres` |
+| `DB_PASSWORD` | Database password | `postgres` |
+| `DB_SSLMODE` | SSL mode | `disable` |
+| `ADMIN_USERNAME` | Admin username | `admin` |
+| `ADMIN_PASSWORD` | Admin password | `changeme` |
 
 ---
 
